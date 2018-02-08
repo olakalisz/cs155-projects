@@ -6,6 +6,8 @@ from sklearn.model_selection import KFold
 # columns for different hyperparameters
 TRAINED_MODELS = [
     'adaboost',
+    'adaboost_n373_lr1',
+    'adaboost_n374_lr1',
     'knn_2',
     'knn_4',
     'knn_8',
@@ -19,6 +21,7 @@ TRAINED_MODELS = [
     'rf',
     'rf2',
     'rf3',
+    'rf_md144_mss80',
     'ffm',
     'vw_logistic',
     'vw_logistic_nn5',
@@ -47,15 +50,20 @@ def load_data():
     y_train = training_data[:,0]
     return X_train, y_train, X_test
 
+
 def load_models(models=TRAINED_MODELS):
     """Load training results from specified models.
+
+    Models should be strings that match values available in TRAINED_MODELS.
 
     Returns aggregated numpy arrays containing a column for each model:
         X_meta_train, X_meta_test
 
     """
+    # NB: knn models have multiple columns of results for different distance metrics, so we just
+    # use the last column (bray curtis) which performed the best
     X_meta_train = np.hstack([
-        np.loadtxt(f'../inferences/{m}_train.txt', ndmin=2) for m in TRAINED_MODELS])
+        np.loadtxt(f'../inferences/{m}_train.txt', ndmin=2)[:,-1:] for m in models])
     X_meta_test = np.hstack([
-        np.loadtxt(f'../inferences/{m}_test.txt', ndmin=2) for m in TRAINED_MODELS])
+        np.loadtxt(f'../inferences/{m}_test.txt', ndmin=2)[:,-1:] for m in models])
     return X_meta_train, X_meta_test
