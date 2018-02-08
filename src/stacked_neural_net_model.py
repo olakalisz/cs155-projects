@@ -1,14 +1,16 @@
+from base_models import common
 import datasets
 import functools
 import numpy as np
 from sklearn.ensemble import BaggingClassifier
+from sklearn.linear_model import LogisticRegression
 from keras.layers import *
 from keras.layers.core import *
 from keras.models import Sequential, Model
 from keras.wrappers.scikit_learn import KerasClassifier
 
 
-def build_model(nmeta_models=len(datasets.TRAINED_MODELS)):
+def build_model(nmeta_models=len(datasets.TRAINED_MODELS_HOLDOUT)):
     """Build neural net for stacked model.
 
     The constructed model takes as input data from the trained models and the original dataset,
@@ -19,12 +21,12 @@ def build_model(nmeta_models=len(datasets.TRAINED_MODELS)):
 
     """
     meta = Sequential()
-    meta.add(Dense(10, activation='relu', input_shape=(nmeta_models,)))
+    meta.add(Dense(20, activation='relu', input_shape=(nmeta_models,)))
     meta.add(Dropout(0.5))
 
     orig_data = Sequential()
     orig_data.add(Dropout(0.5, input_shape=(1000,)))
-    orig_data.add(Dense(30, activation='relu', kernel_regularizer=regularizers.l2(0.001)))
+    orig_data.add(Dense(20, activation='relu', kernel_regularizer=regularizers.l2(0.001)))
     orig_data.add(Dropout(0.5))
 
     merged = Merge([meta, orig_data], mode='concat')
@@ -82,10 +84,9 @@ def train_bagged_nn(X_train, y_train, X_test, X_meta_train, X_meta_test, kf=data
         raw_test_results = np.array([
             model.predict([X_meta_train[test_index], X_train[test_index]])
             for model in models])
-        classes_train[test_index] = np.mean(raw_test_results, axis=0)
+        classes_train[test_index] = np.rint(np.mean(raw_test_results, axis=0))
         if verbose:
-            acc = (1 - np.sum(np.abs(np.rint(classes_train[test_index]) - y_train[test_index])) /
-                    y_train.shape[0])
+            acc = common.train_accuracy(classes_train[test_index], y_train[test_index])
             print(f'Eval accuracy: {acc}')
 
     if verbose:
@@ -93,6 +94,26 @@ def train_bagged_nn(X_train, y_train, X_test, X_meta_train, X_meta_test, kf=data
     models = train_bagged_models(np.array(range(X_train.shape[0])))
     raw_test_results = np.array(
         [model.predict([X_meta_test, X_test]) for model in models])
-    classes_test = np.mean(raw_test_results, axis=0)
+    classes_test = np.rint(np.mean(raw_test_results, axis=0))
 
     return classes_train, classes_test
+
+def train_logit(X_train, y_train, X_test, X_meta_train, X_meta_test, C=100, verbose=False):
+    """Train a logistic regression on the referenced data.
+
+    C is a regularization parameter that is inverse to regularization strength.
+
+    """
+    logit = LogisticRegression(C=C)
+
+    train = np.hstack([X_train, X_meta_train])
+    test = np.hstack([X_test, X_meta_test])
+    logit.fit(train, y_train)
+    train_out = np.rint(logit.predict(train))
+    test_out = np.rint(logit.predict(test))
+
+    if verbose:
+        print('Logisitic Regression train accuracy: %.3f'
+                % common.train_accuracy(train_out, y_train))
+
+    return train_out, test_out
