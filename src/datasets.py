@@ -5,9 +5,8 @@ from sklearn.model_selection import KFold, train_test_split
 # listed of trained models to stack - each references results stored in files
 # named inferences/%s_{train,test}.txt, each of which may contain multiple
 # columns for different hyperparameters
-TRAINED_MODELS = [
+TRAINED_MODELS_FULL = [
     'adaboost',
-    'adaboost_n373_lr1',
     'adaboost_n374_lr1',
     'knn_2',
     'knn_4',
@@ -22,7 +21,6 @@ TRAINED_MODELS = [
     'rf',
     'rf2',
     'rf3',
-    'rf_md144_mss80',
     'ffm',
     'vw_logistic',
     'vw_logistic_nn5',
@@ -34,6 +32,16 @@ TRAINED_MODELS = [
     'nn',
     'nn2',
     'nn3',
+]
+
+# list of trained models with a 10% holdout
+TRAINED_MODELS_HOLDOUT = [
+    'adaboost_n290_lr1',
+    'adaboost_n373_lr1',
+    'knn_128_bc',
+    'rf_md132_mss80',
+    'rf_md144_mss80',
+    'et',
 ]
 
 # instantiating this here so that we can share the same random seed everywhere
@@ -54,10 +62,10 @@ def load_data(holdout=0.1):
     return X_train, y_train, X_test, X_holdout, y_holdout
 
 
-def load_models(models=TRAINED_MODELS):
+def load_models(models=TRAINED_MODELS_HOLDOUT):
     """Load training results from specified models.
 
-    Models should be strings that match values available in TRAINED_MODELS.
+    Models should be strings that match values in TRAINED_MODELS_{FULL,HOLDOUT}.
 
     Returns aggregated numpy arrays containing a column for each model:
         X_meta_train, X_meta_test
@@ -72,15 +80,18 @@ def load_models(models=TRAINED_MODELS):
     return X_meta_train, X_meta_test
 
 
-def model_accuracy(models=TRAINED_MODELS):
+def model_accuracy(models=TRAINED_MODELS_HOLDOUT, holdout=0.1):
     """Compute the model accuracy for each of the specified models.
+
+    The holdout parameter indicates what percent holdout the indicated models were trained with,
+    and effects what subset of y_train the data is compared with.
 
     Returns a list of same size as the models parameter, with each element being a float accuracy.
 
     """
     # NB: this function currently works with models from before we trained with a holdout. it will
     # need to be changed to work with the 18000-sized datasets
-    _, y_train, _, _, _ = load_data(holdout=0.0)
+    _, y_train, _, _, _ = load_data(holdout=holdout)
     X_meta_train, _ = load_models(models=models)
     assert X_meta_train.shape[1] == len(models), X_meta_train.shape[1]
     accuracies = []
