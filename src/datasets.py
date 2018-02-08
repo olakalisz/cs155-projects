@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.model_selection import KFold
+from sklearn.model_selection import KFold, train_test_split
 
 # listed of trained models to stack - each references results stored in files
 # named inferences/%s_{train,test}.txt, each of which may contain multiple
@@ -38,7 +38,7 @@ TRAINED_MODELS = [
 # instantiating this here so that we can share the same random seed everywhere
 KF_SEEDED = KFold(n_splits=4, shuffle=True, random_state=212)
 
-def load_data():
+def load_data(holdout=0.1):
     """Load provided training and test data from files.
 
     Returns numpy arrays X_train, y_train, X_test.
@@ -48,7 +48,9 @@ def load_data():
     X_test = np.loadtxt('../data/test_data.txt', skiprows=1)
     X_train = training_data[:,1:]
     y_train = training_data[:,0]
-    return X_train, y_train, X_test
+    X_train, X_holdout, y_train, y_holdout = train_test_split(
+        X_train, y_train, test_size=holdout, random_state=100)
+    return X_train, y_train, X_test, X_holdout, y_holdout
 
 
 def load_models(models=TRAINED_MODELS):
