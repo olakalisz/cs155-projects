@@ -13,7 +13,7 @@ def train_accuracy(predictions, y_train):
     return (1 - np.sum(np.abs((np.rint(predictions)) - y_train)) / y_train.shape[0])
 
 def plot_learning_curve(model, X_train, y_train, kf=None, param_range=[],
-        title=None, param_lab=''):
+        title=None, param_lab='', verbose=False):
     """Plot the learning curve for a given model vs. one parameter.
 
     model should be a callable with signature:
@@ -27,27 +27,35 @@ def plot_learning_curve(model, X_train, y_train, kf=None, param_range=[],
 
     title and param_lab are used as labels in the graph that is produced.
 
+    Plots the graph to the matplotlib output, and returns a numpy array of training and validation
+    accuracy vs. param.
+
     """
     title = title or 'Learning Rate of {}' % model.__name__
     kf = kf or datasets.KF_SEEDED
-    error_vs_p = np.zeros((len(param_range), 3))
+    acc_vs_p = np.zeros((len(param_range), 3))
     for i, p in enumerate(param_range):
-        train_err = val_err = 0.0
+        if verbose:
+            print(f'Training for p={p}')
+        train_acc = val_acc = 0.0
         for j, (train_index, test_index) in enumerate(kf.split(range(X_train.shape[0]))):
             train_class, test_class = model(
                 X_train[train_index], y_train[train_index], X_train[test_index], p)
-            # keep an average of errors seen across all folds
-            train_err = (train_err * j + train_accuracy(train_class, y_train[train_index])) / (j+1)
-            val_err += (val_err * j + train_accuracy(test_class, y_train[test_index])) / (j+1)
-        error_vs_p[i] = np.array([N, train_err, val_err])
+            # keep an average of accuracies seen across all folds
+            train_acc = (train_acc * j + train_accuracy(train_class, y_train[train_index])) / (j+1)
+            val_acc = (val_acc * j + train_accuracy(test_class, y_train[test_index])) / (j+1)
+        acc_vs_p[i] = np.array([p, train_acc, val_acc])
+        if verbose:
+            print(f'Train acc={train_acc:.3}')
+            print(f'Valid acc={val_acc:.3}')
 
     # plot the results
-    #plt.axis([20, 100, 0, 6])
-    plt.plot(error_vs_N[:,0], error_vs_N[:,1], label='Training Error')
-    plt.plot(error_vs_N[:,0], error_vs_N[:,2], label='Validation Error')
-    plt.set_title(title)
-    # NB: this only produces labels on the last plot; why it doesn't work on all is unknown
+    plt.plot(acc_vs_p[:,0], acc_vs_p[:,1], label='Training Accuracy')
+    plt.plot(acc_vs_p[:,0], acc_vs_p[:,2], label='Validation Accuracy')
+    plt.title(title)
     plt.xlabel(param_lab)
     plt.ylabel('Average Accuracy')
     plt.legend()
     plt.show()
+
+    return acc_vs_p
