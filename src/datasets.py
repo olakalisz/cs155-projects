@@ -28,7 +28,6 @@ TRAINED_MODELS_FULL = [
     'xgb2',
     'lr',
     'lr2',
-    'et',
     'nn',
     'nn2',
     'nn3',
@@ -42,6 +41,8 @@ TRAINED_MODELS_HOLDOUT = [
     'rf_md132_mss80',
     'rf_md144_mss80',
     'et',
+    'nn2_holdout',
+    'nn3_holdout',
 ]
 
 # instantiating this here so that we can share the same random seed everywhere
@@ -57,6 +58,9 @@ def load_data(holdout=0.1):
     X_test = np.loadtxt('../data/test_data.txt', skiprows=1)
     X_train = training_data[:,1:]
     y_train = training_data[:,0]
+    if holdout == 0.0:
+        return X_train, y_train, X_test, np.array([]), np.array([])
+
     X_train, X_holdout, y_train, y_holdout = train_test_split(
         X_train, y_train, test_size=holdout, random_state=100)
     return X_train, y_train, X_test, X_holdout, y_holdout
