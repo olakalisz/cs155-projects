@@ -1,3 +1,4 @@
+from base_models import common
 import numpy as np
 from sklearn.model_selection import KFold, train_test_split
 
@@ -69,3 +70,21 @@ def load_models(models=TRAINED_MODELS):
     X_meta_test = np.hstack([
         np.loadtxt(f'../inferences/{m}_test.txt', ndmin=2)[:,-1:] for m in models])
     return X_meta_train, X_meta_test
+
+
+def model_accuracy(models=TRAINED_MODELS):
+    """Compute the model accuracy for each of the specified models.
+
+    Returns a list of same size as the models parameter, with each element being a float accuracy.
+
+    """
+    # NB: this function currently works with models from before we trained with a holdout. it will
+    # need to be changed to work with the 18000-sized datasets
+    _, y_train, _, _, _ = load_data(holdout=0.0)
+    X_meta_train, _ = load_models(models=models)
+    assert X_meta_train.shape[1] == len(models), X_meta_train.shape[1]
+    accuracies = []
+    for i in range(len(models)):
+        accuracies.append(common.train_accuracy(X_meta_train[:,i], y_train))
+
+    return accuracies
