@@ -13,7 +13,7 @@ def train_accuracy(predictions, y_train):
     return (1 - np.sum(np.abs((np.rint(predictions)) - y_train)) / y_train.shape[0])
 
 def plot_learning_curve(model, X_train, y_train, kf=None, param_range=[],
-        title=None, param_lab='', verbose=False):
+        title=None, param_lab='', output=None):
     """Plot the learning curve for a given model vs. one parameter.
 
     model should be a callable with signature:
@@ -27,16 +27,18 @@ def plot_learning_curve(model, X_train, y_train, kf=None, param_range=[],
 
     title and param_lab are used as labels in the graph that is produced.
 
-    Plots the graph to the matplotlib output, and returns a numpy array of training and validation
-    accuracy vs. param.
+    output is an IO object which, if specified, will be written to with progress data
+
+    Plots the graph to the a PNG file named as the title, and returns a numpy array of training
+    and validation accuracy vs. param.
 
     """
     title = title or 'Learning Rate of {}' % model.__name__
     kf = kf or datasets.KF_SEEDED
     acc_vs_p = np.zeros((len(param_range), 3))
     for i, p in enumerate(param_range):
-        if verbose:
-            print(f'Training for p={p}')
+        if output:
+            output.write(f'Training for p={p}\n')
         train_acc = val_acc = 0.0
         for j, (train_index, test_index) in enumerate(kf.split(range(X_train.shape[0]))):
             train_class, test_class = model(
@@ -45,9 +47,11 @@ def plot_learning_curve(model, X_train, y_train, kf=None, param_range=[],
             train_acc = (train_acc * j + train_accuracy(train_class, y_train[train_index])) / (j+1)
             val_acc = (val_acc * j + train_accuracy(test_class, y_train[test_index])) / (j+1)
         acc_vs_p[i] = np.array([p, train_acc, val_acc])
-        if verbose:
-            print(f'Train acc={train_acc:.3}')
-            print(f'Valid acc={val_acc:.3}')
+        if output:
+            output.write(f'Train acc={train_acc:.3}\n')
+            output.write(f'Valid acc={val_acc:.3}\n')
+            # flush output in case we have a crash
+            output.flush()
 
     # plot the results
     plt.plot(acc_vs_p[:,0], acc_vs_p[:,1], label='Training Accuracy')
@@ -56,6 +60,7 @@ def plot_learning_curve(model, X_train, y_train, kf=None, param_range=[],
     plt.xlabel(param_lab)
     plt.ylabel('Average Accuracy')
     plt.legend()
-    plt.show()
+    plt.savefig(title.replace(' ','_') + '.png')
+    plt.close()
 
     return acc_vs_p
