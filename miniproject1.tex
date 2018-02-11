@@ -42,10 +42,32 @@
 \begin{itemize}
 
     \item \boldline{Models and techniques tried}
-    \begin{itemize}
-    % Insert text here. Bullet points can be made using '\item'. Models and techniques should be bolded using '\textbf{}'.
-    \item \textbf{Bullet:} Bullet text.
-    \end{itemize}
+
+        Our overall approach was to stack the results of a wide variety of ``first layer'' models to train a ``second layer'' ensemble model.
+        % TODO describe the stacking approach in a bit more detail in this section, either here or after the lists of models.
+
+        For \textbf{first layer models}, we experimented with each of the following, only a subset of which we ended up using in our final model.
+        \begin{itemize}
+            \item \textbf{K Nearest Neighbors:} Trained KNN for a wide range of $N \in \{2^i | i \in [1,10]\}$ with three different distance metrics for each $N$: Manhattan, Euclidean, and Bray-Curtis.
+            \item \textbf{AdaBoost:} with hyperparameter selection across the number of estimators and the learning rate.
+            \item \textbf{Random Forest:} with hyperparameter selection across the max depth and minimum split size, with number of estimators set at 250.
+            \item \textbf{Extra Trees:} % TODO blurb
+            \item \textbf{XGBoost:} % TODO blurb
+            \item \textbf{Logistic Regression:} % TODO blurb
+            \item \textbf{FFM:} % TODO blurb
+            \item \textbf{Vowpal-Wabbit:} % TODO blurb
+            \item \textbf{Neural Nets:} to incorporate data from other representations including:
+                \begin{itemize}
+                    \item Embeddings % TODO blurb, did we actually use this in practice? can't tell from the colab or the notebook
+                    % TODO more info on neural nets
+                \end{itemize}
+        \end{itemize}
+
+        For \textbf{second layer models}, we experimented with each of the following:
+        \begin{itemize}
+            \item \textbf{Neural Net:} constructed with two dense hidden layers whose sizes we experimented with, and a number of dropout layers for regularization.
+            \item \textbf{Logistic Regression:} % TODO(riley) blurb
+        \end{itemize}
 
     \item \boldline{Work timeline}
     \begin{itemize}
@@ -64,22 +86,47 @@
     \item \boldline{Data processing and manipulation}
     \begin{itemize}
     % Insert text here. Bullet points can be made using '\item'.
-    \item \textbf{Bullet:} Bullet text.
+        \item \textbf{Bag of Words:} Most models relied on the bag-of-words representation provided with no modification before input to our first layer models
+        % TODO(qingzhuo): some thoughts on attempts to reverse the stemming process and use word2vec/other representations
+        \item \textbf{Second Layer Model Meta-Features:} % TODO decide whether to talk about this here or somewhere else, e.g. in second level details in the next section
     \end{itemize}
 
     \item \boldline{Details of models and techniques}
-    \begin{itemize}
-    % Insert text here. Bullet points can be made using '\item'.
-    \item \textbf{Bullet:} Bullet text.
 
-    % If you would like to insert a figure, you can just use the following five lines, replacing the image path with your own and the caption with a 1-2 sentence description of what the image is and how it is relevant or useful.
-    \begin{figure}[H]
-    \centering
-    %\includegraphics[width=\textwidth]{smiley.png}
-    \caption{Insert caption here.}
-    \end{figure}
+        % NB: perhaps we should actually put the results of parameter search in the Model Selection->Scoring section?
+        We optimized \textbf{first layer models} in isolation, with results detailed below:
+        \begin{itemize}
+            \item \textbf{K Nearest Neighbors:} Trained KNN for a wide range of $N \in \{2^i | i \in [1,10]\}$ with three different distance metrics for each $N$: Manhattan, Euclidean, and Bray-Curtis.
+                % TODO(riley) KNN performance based on inference data
+            \item \textbf{AdaBoost:} with hyperparameter selection across the number of estimators and the learning rate.
+                % TODO(ola) data from wiki
+                \begin{figure}[H]
+                \centering
+                \includegraphics[width=\textwidth]{adaboost_vs_nest.png}
+                \caption{AdaBoost training and validation accuracy vs. number of estimators.}
+                \end{figure}
+            \item \textbf{Random Forest:} with hyperparameter selection across the max depth and minimum split size, with number of estimators set at 250.
+                % TODO(ola) data from wiki
+                % TODO(riley) graph
+            \item \textbf{Extra Trees:} % TODO details
+            \item \textbf{XGBoost:} % TODO details
+            \item \textbf{Logistic Regression:} % TODO details
+            \item \textbf{FFM:} % TODO details
+            \item \textbf{Vowpal-Wabbit:} % TODO details
+            \item \textbf{Neural Nets:} to incorporate data from other representations including:
+                \begin{itemize}
+                    \item Embeddings % TODO details
+                    % TODO more info on neural nets
+                \end{itemize}
+        \end{itemize}
 
-    \end{itemize}
+        For \textbf{second layer models}, we found:
+        \begin{itemize}
+            \item \textbf{Neural Net:}
+                % TODO(riley) comments on overfitting
+            \item \textbf{Logistic Regression:}
+                % TODO(riley) comments on overfitting both before/after model candidate reduction
+        \end{itemize}
 
 \end{itemize}
 
@@ -90,9 +137,12 @@
 \begin{itemize}
 
     \item \boldline{Scoring} \\
-    % Insert text here.
+        % TODO are we supposed to write about the accuracy metric used in this section, and how we interpreted it?
+        % TODO(riley) likely write about attempt to prevent data leaking into the second layer here, how that didn't work and how we would fix it in the future
 
     \item \boldline{Validation and Test} \\
+        % TODO(riley) comments/figure on final model selection vs. all models in second layer
+        % TODO possibly create a table showing all model validation/test scores
     % Insert text here.
 
 \end{itemize}
