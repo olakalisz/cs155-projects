@@ -41,10 +41,10 @@ def plot_learning_curve(model, X_train, y_train, kf=None, param_range=[],
             output.write(f'Training for p={p}\n')
         train_acc = val_acc = 0.0
         for j, (train_index, test_index) in enumerate(kf.split(range(X_train.shape[0]))):
-            train_class, test_class = model(
+            insample_class, _, test_class = model(
                 X_train[train_index], y_train[train_index], X_train[test_index], p)
             # keep an average of accuracies seen across all folds
-            train_acc = (train_acc * j + train_accuracy(train_class, y_train[train_index])) / (j+1)
+            train_acc = (train_acc * j + train_accuracy(insample_class, y_train[train_index])) / (j+1)
             val_acc = (val_acc * j + train_accuracy(test_class, y_train[test_index])) / (j+1)
         acc_vs_p[i] = np.array([p, train_acc, val_acc])
         if output:

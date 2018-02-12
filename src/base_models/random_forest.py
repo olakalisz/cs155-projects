@@ -6,9 +6,13 @@ def RandomForest(X_train, y_train, X_test, n_estimators=250, max_depth=144, min_
         kf=datasets.KF_SEEDED, verbose=False):
     """Train a single random forest model on the data with k-fold cross validation.
 
-    Returns two numpy arrays: training and test predictions.
+    Returns three numpy arrays:
+      * majority in-sample classification from the k-folds
+      * training classifications from cross-validation
+      * test classifications
 
     """
+    rf_classes_insample = np.zeros(y_train.shape)
     rf_classes_train = np.empty(y_train.shape)
     rf_classes_test = np.empty(X_test.shape[0])
 
@@ -20,6 +24,7 @@ def RandomForest(X_train, y_train, X_test, n_estimators=250, max_depth=144, min_
             max_depth=max_depth, min_samples_split=min_samples_split)
         clf.fit(X_train[train_index], y_train[train_index])
         rf_classes_train[test_index] = clf.predict(X_train[test_index])
+        rf_classes_insample[train_index] += clf.predict(X_train[train_index]) / kf.n_splits
 
     if verbose:
         print('RandomForest, test')
@@ -29,4 +34,4 @@ def RandomForest(X_train, y_train, X_test, n_estimators=250, max_depth=144, min_
     clf.fit(X_train, y_train)
     rf_classes_test = clf.predict(X_test)
 
-    return rf_classes_train, rf_classes_test
+    return np.rint(rf_classes_insample), rf_classes_train, rf_classes_test

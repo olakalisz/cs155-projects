@@ -7,9 +7,13 @@ def AdaBoost(X_train, y_train, X_test, n_estimators=250, learning_rate=1, kf=dat
         verbose=False):
     """Train a single adaboost model on the data.
 
-    Returns two numpy arrays: training and test predictions.
+    Returns three numpy arrays:
+      * majority in-sample classification from the k-folds
+      * training classifications from cross-validation
+      * test classifications
 
     """
+    adaboost_classes_insample = np.zeros(y_train.shape)
     adaboost_classes_train = np.empty(y_train.shape)
     adaboost_classes_test = np.empty(X_test.shape[0])
 
@@ -19,6 +23,7 @@ def AdaBoost(X_train, y_train, X_test, n_estimators=250, learning_rate=1, kf=dat
         clf = AdaBoostClassifier(n_estimators=n_estimators, learning_rate=learning_rate)
         clf.fit(X_train[train_index], y_train[train_index])
         adaboost_classes_train[test_index] = clf.predict_proba(X_train[test_index])[:, 1]
+        adaboost_classes_insample[train_index] += clf.predict(X_train[train_index]) / kf.n_splits
 
     if verbose:
         print('Adaboost, test')
@@ -26,4 +31,4 @@ def AdaBoost(X_train, y_train, X_test, n_estimators=250, learning_rate=1, kf=dat
     clf.fit(X_train, y_train)
     adaboost_classes_test = clf.predict_proba(X_test)[:, 1]
 
-    return adaboost_classes_train, adaboost_classes_test
+    return adaboost_classes_insample, adaboost_classes_train, adaboost_classes_test
