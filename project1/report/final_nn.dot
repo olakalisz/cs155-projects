@@ -1,0 +1,13 @@
+digraph G {
+  bow_input [label=<Bag of Words Input<BR />1000 nodes>];
+  first_layer_input [label=<First Layer Predictions<BR />8 nodes>];
+  bow_hidden [label=<Bag of Words Hidden Layer<BR />30 nodes, L2-regularized>];
+  first_layer_hidden [label=<Predictions Hidden Layer<BR />10 nodes>];
+  merge [label=<Merge<BR />(Concatenation)>];
+  output [label=<Output>];
+  bow_input -> bow_hidden [label="Dense w/ 50% Dropout"];
+  first_layer_input -> first_layer_hidden [label="Dense w/ no dropout"];
+  first_layer_hidden -> merge [label="Dense w/ 50% Dropout"];
+  bow_hidden -> merge [label="Dense w/ 50% Dropout"];
+  merge -> output [label="Dense w/ no dropout"];
+}

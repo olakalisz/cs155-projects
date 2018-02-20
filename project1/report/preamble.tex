@@ -69,15 +69,3 @@
 
 \newenvironment{hint}[1][]
   {\begin{em}\textbf{Hint: }}{\end{em}}
-
-\ifshowsolutions
-  \newenvironment{solution}[1][]
-    {\par\medskip \begin{mdframed}\textbf{Solution~\Alph{question}#1:} \begin{em}}
-    {\end{em}\medskip\end{mdframed}\medskip}
-  \newenvironment{subsolution}[1][]
-    {\par\medskip \begin{mdframed}\textbf{Solution~\Alph{question}#1.\roman{subquestion}:} \begin{em}}
-    {\end{em}\medskip\end{mdframed}\medskip}
-\else
-  \excludecomment{solution}
-  \excludecomment{subsolution}
-\fi
