@@ -12,6 +12,7 @@ MOVIE_FEATURES = [
     '', # unknown feature
     'Action',
     'Adventure',
+    'Animation',
     'Childrens',
     'Comedy',
     'Crime',
