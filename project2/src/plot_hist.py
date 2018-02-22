@@ -72,7 +72,7 @@ if __name__ == '__main__':
 
     # plot histoagram for all movies in three different genres
     for genre in ['Animation', 'Drama', 'Sci-Fi']:
-        genre_movie_id = [m.id for m in dataset.Movie.query(genre=genre)]
+        genre_movie_id = [m.id for m in dataset.Movie.query(genres=[genre])]
         plot_rating_hist(
             ratings_of_movies(genre_movie_id),
             f'Ratings of movies with genre {genre}',

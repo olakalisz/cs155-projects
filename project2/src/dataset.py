@@ -45,13 +45,13 @@ class Movie:
                 self.genres.append(genre)
 
     @classmethod
-    def query(cls, genre=[]):
+    def query(cls, genres=[]):
         """Query all movies that match certain criteria.
 
         If genre is provided, returns objects of movies that match any genre in that list.
 
         """
-        return [Movie(id) for id in cls.movies() if genre in Movie(id).genres]
+        return [Movie(id) for id in cls.movies() if set(genres).intersection(set(Movie(id).genres))]
 
     @classmethod
     def movies(cls):
