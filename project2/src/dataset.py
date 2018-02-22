@@ -3,7 +3,9 @@ import numpy as np
 # movie metadata encoded as indicated in MOVIE_FEATURES
 MOVIES = '../data/movies.txt'
 # user ratings encoded as user_id, movie_id, rating
-RATINGS = '../data/data.txt'
+RATINGS_FULL = '../data/data.txt'
+RATINGS_TRAIN = '../data/train.txt'
+RATINGS_TEST = '../data/test.txt'
 
 MOVIE_FEATURES = [
     'id',
@@ -43,6 +45,15 @@ class Movie:
                 self.genres.append(genre)
 
     @classmethod
+    def query(cls, genre=[]):
+        """Query all movies that match certain criteria.
+
+        If genre is provided, returns objects of movies that match any genre in that list.
+
+        """
+        return [Movie(id) for id in cls.movies() if genre in Movie(id).genres]
+
+    @classmethod
     def movies(cls):
         """A dictionary of all movie data.
 
@@ -56,3 +67,14 @@ class Movie:
                 for r in np.loadtxt(MOVIES, dtype=str, delimiter='\t', encoding='latin1')
             }
         return cls._movies
+
+def load_ratings(source=RATINGS_FULL):
+    """Load ratings from a specified source file.
+
+    Assumes the MovieLens rating format, rows of:
+        (user id, movie id, rating)
+
+    Returns a Nx3 numpy array containing that data.
+
+    """
+    return np.loadtxt(source, dtype=int, delimiter='\t')
