@@ -103,7 +103,7 @@ if __name__ == '__main__':
     # TODO SVD with bias
 
     # "off-the-shelf" SVD from numpy
-    U, V = off_the_shelf.off_the_shelf_train(M, N, K, Y_train)
+    U, V = off_the_shelf.scipy_svd_train(M, N, K, Y_train)
     visualize_2d(V, label_outlier_threshold=.01, labels=movie_titles)
 
     # find the most popular movies
