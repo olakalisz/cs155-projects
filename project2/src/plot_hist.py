@@ -50,21 +50,14 @@ if __name__ == '__main__':
     plot_rating_hist(ratings, 'All MovieLens Ratings', filename=filename('all'))
 
     # find the most popular movies
-    M = len(dataset.Movie.movies())
-    # first find a histogram with M buckets for every integer
-    movie_hist = np.histogram(ratings[:,1], bins=range(1, M+2))[0]
-    top_ten_id = [id for _, id in sorted(zip(movie_hist, range(1, M+1)), reverse=True)[:10]]
-    # note that this shuffles the order, but that doesn't matter for use in histogram
+    top_ten_id = dataset.top_most_rated_movies(ratings, n=10)
     plot_rating_hist(
             ratings_of_movies(top_ten_id),
             'Ratings for top ten movies by rating frequency',
             filename=filename('top_ten_frequency'))
 
     # find the highest average rated movies
-    # note that this takes M**2 time unnecessarily but M=1682 so not worrying about it
-    avg_ratings = [np.mean(ratings[np.where(ratings[:,1] == i),2]) for i in range(1, M+1)]
-    top_ten_id = [id for _, id in sorted(zip(avg_ratings, range(1, M+1)), reverse=True)[:10]]
-    # note that this shuffles the order, but that doesn't matter for use in histogram
+    top_ten_id = dataset.top_avg_rated_movies(ratings, n=10)
     plot_rating_hist(
             ratings_of_movies(top_ten_id),
             'Ratings for top ten movies by average rating',
