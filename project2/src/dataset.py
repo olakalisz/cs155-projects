@@ -1,4 +1,5 @@
 import numpy as np
+import re
 
 # movie metadata encoded as indicated in MOVIE_FEATURES
 MOVIES = '../data/movies.txt'
@@ -31,6 +32,7 @@ MOVIE_FEATURES = [
     'Western',
 ]
 
+YEAR_RE = re.compile('\((\d+)\)')
 class Movie:
     # class property to store dataset once
     _movies = {}
@@ -43,6 +45,16 @@ class Movie:
         for genre, indicator in zip(MOVIE_FEATURES[3:], raw_data[2:]):
             if int(indicator):
                 self.genres.append(genre)
+
+    @property
+    def year(self):
+        match = YEAR_RE.search(self.title)
+        if match:
+            return int(match.group(1))
+
+        # dumb default
+        print(self.title)
+        return 1950
 
     @classmethod
     def query(cls, genres=[]):
@@ -78,3 +90,41 @@ def load_ratings(source=RATINGS_FULL):
 
     """
     return np.loadtxt(source, dtype=int, delimiter='\t')
+
+# hand bucketing genres into three buckets so that we can map to rgb
+GENRE_BUCKETS = {
+    'artsy': [
+        'Documentary',
+        'Drama',
+        'Film-Noir',
+        'Musical',
+    ],
+    'light': [
+        'Adventure',
+        'Animation',
+        'Childrens',
+        'Comedy',
+        'Fantasy',
+        'Romance',
+    ],
+    'actionlike': [
+        'Action',
+        'Crime',
+        'Horror',
+        'Mystery',
+        'Sci-Fi',
+        'Thriller',
+        'War',
+        'Western',
+    ],
+}
+
+def genres_to_rgb(movie_id):
+    """Map movie to RGB based on number of genres that fall in the buckets defined above.
+
+    Returns a 3-tuple of floats in range [0.0, 1.0] indicating amount of red, green, blue.
+
+    """
+    return tuple([
+        len(set(bucket).intersection(set(Movie(movie_id).genres))) / len(bucket)
+        for bucket in GENRE_BUCKETS.values()])

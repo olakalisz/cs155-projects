@@ -6,7 +6,7 @@ import numpy as np
 import dataset
 import svd_sgd
 
-def visualize_2d(M, index=None, labels=[], filename=None):
+def visualize_2d(M, index=None, labels=[], color=lambda id: 'black', alpha=1, filename=None):
     """Project a matrix into 2 dimensions and visualize it.
 
     If the input is mxn, produces a 2xn projection using the first two left singular vectors of M,
@@ -16,6 +16,10 @@ def visualize_2d(M, index=None, labels=[], filename=None):
 
     If labels are provided, the indicated points are labeled in place on the graph (based on index
     matching between the labels list and the columns of the projection).
+
+    color is a lambda that maps ids to a particular color for their point to be drawn in.
+
+    alpha is a single value that is applied to all points drawn.
 
     If filename is provided, outputs the plot to the file indicated. Otherwise, outputs to the
     current matplotlib device.
@@ -29,7 +33,8 @@ def visualize_2d(M, index=None, labels=[], filename=None):
     index = index or range(M.shape[1])
     plt.close('all')
     ax = plt.figure().gca()
-    ax.scatter(M_proj[0,index], M_proj[1,index], marker='.')
+    for i in index:
+        ax.scatter(M_proj[0,i], M_proj[1,i], marker='.', c=color(i+1), alpha=alpha)
     for i, label in enumerate(labels):
         if i not in index:
             continue
