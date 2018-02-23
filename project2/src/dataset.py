@@ -91,6 +91,22 @@ def load_ratings(source=RATINGS_FULL):
     """
     return np.loadtxt(source, dtype=int, delimiter='\t')
 
+def construct_user_movie_matrix(source=RATINGS_FULL, M=None, N=None):
+    """Load ratings data and construct a sparse #usersX#movies matrix of ratings.
+
+    M and N are #users and #movies, respectively. If not provided, they will be inferred from data.
+
+    User and movie ids are assumed to be sequential integers which start at 1.
+
+    """
+    ratings = load_ratings(source)
+    M = M or len(set(ratings[:,0]))
+    N = N or len(set(ratings[:,1]))
+    mat = np.zeros((M, N), dtype=int)
+    for user, movie, rating in ratings:
+        mat[user-1,movie-1] = rating
+    return mat
+
 # hand bucketing genres into three buckets so that we can map to rgb
 GENRE_BUCKETS = {
     'artsy': [
