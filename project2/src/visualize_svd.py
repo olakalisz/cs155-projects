@@ -64,6 +64,8 @@ if __name__ == '__main__':
         return f'{args.imagebasename}_{suffix}.png' if args.imagebasename else None
 
     # load and prepare data
+    # NB: ratings_all stays 1-indexed, while Y_train and Y_test are transformed to be 0-indexed
+    ratings_all = dataset.load_ratings(source=dataset.RATINGS_FULL)
     Y_train = dataset.load_ratings(source=dataset.RATINGS_TRAIN)
     Y_test = dataset.load_ratings(source=dataset.RATINGS_TEST)
     # get number of users, M, and number of movies, N, from distinct ids in the dataset
@@ -101,5 +103,20 @@ if __name__ == '__main__':
     # TODO SVD with bias
 
     # "off-the-shelf" SVD from numpy
-    U, V = off_the_shelf.off_the_shelf_train(M, N, K, dataset.load_ratings())
+    U, V = off_the_shelf.off_the_shelf_train(M, N, K, Y_train)
     visualize_2d(V, label_outlier_threshold=.01, labels=movie_titles)
+
+    # find the most popular movies
+    top_ten_id = list(dataset.top_most_rated_movies(ratings_all, n=10) - np.ones(10, dtype=int))
+    visualize_2d(V, index=top_ten_id, labels=movie_titles)
+
+    # find the highest average rated movies
+    top_ten_id = list(dataset.top_avg_rated_movies(ratings_all, n=10) - np.ones(10, dtype=int))
+    visualize_2d(V, index=top_ten_id, labels=movie_titles)
+
+    # label top ten movies in three different genres
+    genre_movie_id = []
+    for genre in ['Animation', 'Drama', 'Sci-Fi']:
+        genre_movie_id += [m.id for m in dataset.Movie.query(genres=[genre])[:10]]
+    genre_movie_id = list(genre_movie_id - np.ones(len(genre_movie_id), dtype=int))
+    visualize_2d(V, index=genre_movie_id, labels=movie_titles)
