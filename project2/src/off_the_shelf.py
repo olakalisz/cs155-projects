@@ -14,14 +14,14 @@ def off_the_shelf_train(M, N, K, Y):
 	(U, V)
 	"""
 	train_data_matrix = np.zeros((M,N))
-	for n in range(Y_train.shape[0]):
-    	i = Y_train[n,0] - 1
-    	j = Y_train[n,1] - 1
-    	yij = Y_train[n,2]
+	for n in range(Y.shape[0]):
+    	i = Y[n,0] - 1
+    	j = Y[n,1] - 1
+    	yij = Y[n,2]
     	train_data_matrix[i][j] = yij
 
 	U, s, V = svds(train_data_matrix, k = 20)
 	s_diag_matrix=np.diag(s)
-	X_pred = np.dot(np.dot(u, s_diag_matrix), V)
+	X_pred = np.dot(np.dot(U, s_diag_matrix), V)
 
 	return (U, V)
