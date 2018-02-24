@@ -110,18 +110,19 @@
             function handleMIn(d, i){
                 d3.select(this).attr('stroke', '#ff3030');
                 d3.select(this).attr('stroke-width', 3);
+                d3.select(this).attr('stroke-alignment', 'outer');
                 tip.show(d, i);
             }
             function handleMOut(d, i){
-                d3.select(this).attr('stroke'); 
+                d3.select(this).attr('stroke', 'none'); 
                 d3.select(this).attr('stroke-width', 0);
                 tip.hide(d, i);
             }
 
 
             d3.json('data.json', function(error, data) {
-                dataset = data
-                dataset.forEach((d) => d.scatter = [d.rating, d.count])
+                dataset = data;
+                dataset.forEach((d) => d.scatter = [d.rating, d.count]);
 
                 // Create scale functions
                 var xScale = d3.scale.linear()  // xScale is width of graphic
@@ -155,7 +156,6 @@
                     .data(dataset)
                     .enter()
                     .append("circle")  // Add circle svg
-                    // .style("will-change", "transform")
                     .attr("cx", function(d) {
                         return xScale(d[curSel][0]);  // Circle's X
                     })
@@ -163,7 +163,7 @@
                         return yScale(d[curSel][1]);
                     })
                     .attr("r", (d) => Math.log2(d.count))  // radius
-                    .attr("opacity", 0.6)  // radius
+                    .attr("fill-opacity", 0.6)  // radius
                     .attr("fill", (d) => d.color)
                     .on('mouseover', handleMIn)
                     .on('mouseout', handleMOut);  // radius
@@ -208,7 +208,6 @@
                             // .each("start", function() {  // Start animation
                             // })
                             .delay(function(d, i) {
-                                // return d.count;
                                 return i / dataset.length * 500;  // Dynamic delay (i.e. each item delays a little longer)
                             })
                             //.ease("linear")  // Transition easing - default 'variable' (i.e. has acceleration), also: 'circle', 'elastic', 'bounce', 'linear'
