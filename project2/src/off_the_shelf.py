@@ -2,8 +2,9 @@ import numpy as np
 import scipy.sparse as sp
 from scipy.sparse.linalg import svds
 
-def off_the_shelf_train(M, N, K, Y):
-    """
+def scipy_svd_train(M, N, K, Y):
+    """Return a decomposition of Y using SciPy SVD implementation.
+
     Inputs:
     M - integer, number of users
     N - integer, number of movies
