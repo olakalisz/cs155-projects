@@ -135,21 +135,42 @@
 \subsubsection{Visualizations}
 \begin{itemize}
     \item \boldline{Ten movies chosen by distance from centroid of scatterplot}
-        % TODO viz from HW5 impl and commentary
+
+        \includegraphics[scale=.5]{hw5_impl_action_romance.png}
+
+        Action and Romance films projected using $V$ from the HW5 implementation of matrix factorization. Here we can see many of the Romance movies in the bottom half of the plot (with the exception of Air Force One), and a cluster of Action movies at the top, suggesting the difference between these genres is correlated with the dimension represented in the y-axis.
+
+        \includegraphics[width=\textwidth]{off_the_shelf_outliers.png}
+
+        All movies projected using $V$ from SciPy SVD, with the most distance movies from the origin labeled. Here we see a number of clusters of similar movies, including comedies in the bottom left, Sci-Fi in the right, and more ``artsy'' movies in the bottom.
+
         % TODO viz from SVD w/ Bias and commentary
-        % TODO viz from SciPy SVD and commentary
     \item \boldline{Top ten most frequently rated movies}
         % TODO viz from HW5 impl and commentary
         % TODO viz from SVD w/ Bias and commentary
-        % TODO viz from SciPy SVD and commentary
-    \item \boldline{Top ten highest average rated movies}
+
+        \includegraphics[scale=.5]{scipy_top_ten_frequent.png}
+
+        Top ten most frequently rated movies plotted with the SciPy SVD projection. Here we see a clear cluster in the bottom left where the Star Wars movies appear together, and some distance from the romance movies on top.
+    \item \boldline{Highest average rated movies}
         % TODO viz from HW5 impl and commentary
         % TODO viz from SVD w/ Bias and commentary
-        % TODO viz from SciPy SVD and commentary
+
+        \includegraphics[scale=.5]{scipy_top_ten_rated.png}
+
+        Top ten rated movies plotted with the SciPy SVD projection. Here it is difficult to find a correlation, likely due to the small number of ratings (as few as one) for these movies results in less data to distinguish them.
     \item \boldline{Ten movies from three different genres}
         % TODO viz from HW5 impl and commentary
         % TODO viz from SVD w/ Bias and commentary
-        % TODO viz from SciPy SVD and commentary
+
+        \includegraphics[width=\textwidth]{svd_three_genres.png}
+
+        Ten movies each from Animation, Drama, and Sci-Fi, plotted with the SciPy SVD projection. Here we see that most of the dramas are higher on the y-axis, while Sci-Fi is largely lower on the x-axis  than Animation.
+    \item \boldline{Other}
+
+        \includegraphics[scale=.5]{age_coloring.png}
+
+        All movies from the HW5 implementation-based 2D projection, colored with more recent movies being darker. Here we see a correlation with age on the x-axis.
 \end{itemize}
 
 \section{Conclusion}
