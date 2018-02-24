@@ -29,8 +29,12 @@
                 color: #FFFFFF;
                 background-color: #4CAF50;
                 padding: 8px 16px;
+                margin: 0 1px;
                 cursor: pointer;
                 font-weight: 600;
+            }
+            .btn .note {
+                font-size: 0.8em
             }
 
             .btn:hover {
@@ -79,7 +83,7 @@
         Mouse over for information regarding movies.</p>
         <p style="font-size: 0.8em">Done By: Aw Young Qingzhuo, Ola Kalisz, and Riley Patterson</p>
         <h4>See the difference between collaborative filtering methods:</h4>
-        <a class="btn" data="svdu">PMF (SVD without bias)</a> <a class="btn" data="svd">SVD</a> <a class="btn" data="svdpp">SVD++</a>
+        <a class="btn" data="svdu">PMF <span class="note">(SVD without bias)</span></a> <a class="btn" data="svd">SVD</a> <a class="btn" data="svdpp">SVD++</a> <a class="btn" data="scatter">None <span class="note">(Scatterplot)</span></a>
         <h3></h3>
     </div>
   
@@ -117,15 +121,16 @@
 
             d3.json('data.json', function(error, data) {
                 dataset = data
+                dataset.forEach((d) => d.scatter = [d.rating, d.count])
 
                 // Create scale functions
                 var xScale = d3.scale.linear()  // xScale is width of graphic
                                 .domain([d3.min(dataset, (d) => d[curSel][0]), d3.max(dataset, (d) => d[curSel][0])])
-                                .range([padding, canvas_width - padding * 2]); // output range
+                                .range([padding, canvas_width - padding]); // output range
 
                 var yScale = d3.scale.linear()  // yScale is height of graphic
                                 .domain([d3.min(dataset, (d) => d[curSel][1]), d3.max(dataset, (d) => d[curSel][1])])
-                                .range([canvas_height - padding, padding]);  // remember y starts on top going down so we flip
+                                .range([canvas_height - padding - 5, padding]);  // remember y starts on top going down so we flip
 
                 // Define X axis
                 var xAxis = d3.svg.axis()
@@ -150,6 +155,7 @@
                     .data(dataset)
                     .enter()
                     .append("circle")  // Add circle svg
+                    // .style("will-change", "transform")
                     .attr("cx", function(d) {
                         return xScale(d[curSel][0]);  // Circle's X
                     })
@@ -166,7 +172,7 @@
                 // Add to X axis
                 svg.append("g")
                     .attr("class", "x axis")
-                    .attr("transform", "translate(0," + (canvas_height - padding) +")")
+                    .attr("transform", "translate(0," + (canvas_height - padding - 5) +")")
                     .call(xAxis);
 
                 // Add to Y axis
@@ -174,6 +180,14 @@
                     .attr("class", "y axis")
                     .attr("transform", "translate(" + padding +",0)")
                     .call(yAxis);
+
+                svg.append("text")
+                    .attr("x", canvas_width)
+                    .attr("y", canvas_height - 3)
+                    .attr("text-anchor", "end")
+                    .style("font-size", "0.7em")
+                    .style("fill", "#d0d0d0")
+                    .text("color = rating, size = popularity")
 
                 svg.call(tip);
             
@@ -194,6 +208,7 @@
                             // .each("start", function() {  // Start animation
                             // })
                             .delay(function(d, i) {
+                                // return d.count;
                                 return i / dataset.length * 500;  // Dynamic delay (i.e. each item delays a little longer)
                             })
                             //.ease("linear")  // Transition easing - default 'variable' (i.e. has acceleration), also: 'circle', 'elastic', 'bounce', 'linear'
@@ -215,7 +230,7 @@
                             // Update Y Axis
                             svg.select(".y.axis")
                                 .transition()
-                                .duration(100)
+                                .duration(1000)
                                 .call(yAxis);
                     });
                 });
