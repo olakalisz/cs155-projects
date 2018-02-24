@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import argparse
+import heapq
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -8,7 +9,7 @@ import off_the_shelf
 import svd_sgd
 
 def visualize_2d(M, index=None, labels=[], color=lambda id: 'black', alpha=1,
-        label_outlier_threshold=None, filename=None):
+        label_outliers=None, title='2D Projection', legend=None, filename=None):
     """Project a matrix into 2 dimensions and visualize it.
 
     If the input is mxn, produces a 2xn projection using the first two left singular vectors of M,
@@ -23,8 +24,12 @@ def visualize_2d(M, index=None, labels=[], color=lambda id: 'black', alpha=1,
 
     alpha is a single value that is applied to all points drawn.
 
-    label_outlier_threshold is a distance-from-origin threshold that must be satisfied in order to
-    draw a label. Assumes data is centered at the origin.
+    label_outliers, if provided, will specify a number of points to find that are of max distance
+    from the origin in the 2d projection, and only label those points.
+
+    title is passed to matplotlib for use in rendering the figure title.
+
+    legend, if provided, is passed to the matplotlib legend command.
 
     If filename is provided, outputs the plot to the file indicated. Otherwise, outputs to the
     current matplotlib device.
@@ -40,13 +45,29 @@ def visualize_2d(M, index=None, labels=[], color=lambda id: 'black', alpha=1,
     ax = plt.figure().gca()
     for i in index:
         ax.scatter(M_proj[0,i], M_proj[1,i], marker='.', c=color(i+1), alpha=alpha)
+
+    # find outliers
+    outliers = []
+    if label_outliers:
+        for i in range(M.shape[1]):
+            # tuples beginning with negative distance in a minheap will result in a maxheap on
+            # actual distance
+            heapq.heappush(outliers, (-1 * (M_proj[0,i]**2 + M_proj[1,i]**2), i))
+        top_outliers = [i for _, i in [heapq.heappop(outliers) for _ in range(label_outliers)]]
+
     for i, label in enumerate(labels):
         if i not in index:
             continue
-        if label_outlier_threshold and (M_proj[0,i]**2 + M_proj[1,i]**2) < label_outlier_threshold:
+        if label_outliers and i not in top_outliers:
             continue
 
         ax.annotate(label, M_proj[:,i])
+
+    ax.set_title(title)
+    if legend:
+        ax.legend(legend[0])
+        for handle, c in zip(ax.get_legend().legendHandles, legend[1]):
+            handle.set_color(c)
 
     if filename:
         plt.savefig(filename)
@@ -79,7 +100,6 @@ if __name__ == '__main__':
 
     # setting K=20 as specified in the assignment
     K = 20
-    # TODO tune & justify choices of eta and reg
     eta = 0.03
     reg = 1
 
@@ -97,26 +117,43 @@ if __name__ == '__main__':
     # visualize movies in 2d
     visualize_2d(
         V.transpose(), index=action_romance_index,
-        labels=movie_titles, filename=filename('2d_movies_hw5'))
-    # TODO visualize users too
-
-    # TODO SVD with bias
+        labels=movie_titles, title='HW5 Implementation 2D Projection',
+        filename=filename('2d_movies_hw5'))
 
     # "off-the-shelf" SVD from numpy
     U, V = off_the_shelf.scipy_svd_train(M, N, K, Y_train)
-    visualize_2d(V, label_outlier_threshold=.01, labels=movie_titles)
+    visualize_2d(
+        V, label_outliers=10, labels=movie_titles,
+        title='SciPy SVD with ten outliers labeled',
+        filename=filename('2d_outliers_scipy'))
 
     # find the most popular movies
     top_ten_id = list(dataset.top_most_rated_movies(ratings_all, n=10) - np.ones(10, dtype=int))
-    visualize_2d(V, index=top_ten_id, labels=movie_titles)
+    visualize_2d(
+        V, index=top_ten_id, labels=movie_titles,
+        title='SciPy SVD with ten most rated movies labeled',
+        filename=filename('2d_top_ten_frequent_scipy'))
 
     # find the highest average rated movies
     top_ten_id = list(dataset.top_avg_rated_movies(ratings_all, n=10) - np.ones(10, dtype=int))
-    visualize_2d(V, index=top_ten_id, labels=movie_titles)
+    visualize_2d(
+        V, index=top_ten_id, labels=movie_titles,
+        title='SciPy SVD with ten highest rated movies labeled',
+        filename=filename('2d_top_ten_rated_scipy'))
 
     # label top ten movies in three different genres
     genre_movie_id = []
-    for genre in ['Animation', 'Drama', 'Sci-Fi']:
-        genre_movie_id += [m.id for m in dataset.Movie.query(genres=[genre])[:10]]
+    movie_colors = {} # map from movie id to color based on genre
+    colors = ['blue', 'yellow', 'red']
+    for genre, color in zip(['Animation', 'Drama', 'Sci-Fi'], colors):
+        new_ids = [m.id for m in dataset.Movie.query(genres=[genre])[:10]]
+        genre_movie_id += new_ids
+        for id in new_ids:
+            movie_colors[id] = color
     genre_movie_id = list(genre_movie_id - np.ones(len(genre_movie_id), dtype=int))
-    visualize_2d(V, index=genre_movie_id, labels=movie_titles)
+    visualize_2d(
+        V, index=genre_movie_id, labels=movie_titles,
+        title='SciPy SVD with ten movies from three different genres',
+        color=lambda id: movie_colors[id],
+        legend=[('Animation', 'Drama', 'Sci-Fi'), colors],
+        filename=filename('2d_genres_scipy'))
