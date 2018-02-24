@@ -188,11 +188,11 @@
 
                         // Update circles
                         svg.selectAll("circle")
-                            .data(dataset)  // Update with new data
+                            // .data(dataset)  // Update with new data
                             .transition()  // Transition from old to new
                             .duration(1000)  // Length of animation
-                            .each("start", function() {  // Start animation
-                            })
+                            // .each("start", function() {  // Start animation
+                            // })
                             .delay(function(d, i) {
                                 return i / dataset.length * 500;  // Dynamic delay (i.e. each item delays a little longer)
                             })
@@ -202,9 +202,9 @@
                             })
                             .attr("cy", function(d) {
                                 return yScale(d[curSel][1]);  // Circle's Y
-                            })
-                            .each("end", function() {  // End animation
                             });
+                            // .each("end", function() {  // End animation
+                            // });
 
                             // Update X Axis
                             svg.select(".x.axis")
