@@ -4,7 +4,6 @@
   <head>
     <!-- Load D3 from site -->
     <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-    <script src="http://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
   </head>
  
     <!-- CSS (Styling) -->
@@ -13,12 +12,11 @@
             .axis path,
             .axis line {
                 fill: none;
-                stroke: #cccccc;
+                stroke: black;
                 shape-rendering: crispEdges;
             }
 
             .axis text {
-                fill: #fcfcfc;
                 font-family: sans-serif;
                 font-size: 11px;
             }
@@ -33,54 +31,25 @@
             .btn:hover {
                 box-shadow: 0 1px 2px 0 rgba(0,0,0,0.2), 0 3px 8px 0 rgba(0,0,0,0.19);
             }
-            html {
-                background-color: #3c3c3c
-            }
-            body {
-                color: #fcfcfc;
-                display: flex;
-                justify-content: space-around;
+
+            html, body {
                 font-family: Verdana,sans-serif;
                 font-size: 15px;
                 line-height: 1.5;
-                width: 100vw;
-                margin: 0 auto; 
-                text-align: center;
-            }
-
-            h1 {
-                text-align: center;
-            }
-
-            div.tooltip {
-                color: white;
-                padding: 4px 8px;
-                background-color: rgba(0, 0, 0, 0.7);
-                border-radius: 5px
             }
     </style>
     <!-- End CSS (Styling) -->
  
   <body>
-    <div>
-        <h1>MovieLens 100k Visualization </h1>
-        <p>This is a data visualization using transitions with a scatterplot</p>
-        <h4>Choose collaborative filtering method:</h4>
-        <a class="btn" data="svdu">PMF (SVD without bias)</a> <a class="btn" data="svd">SVD</a> <a class="btn" data="svdpp">SVD++</a>
-        <h3></h3>
-    </div>
+    <h1>MovieLens 100k Visualization </h1>
+    <p>This is a data visualization using transitions with a scatterplot</p>
+    <h4>Choose collaborative filtering method:</h4>
+    <a class="btn" data="svdu">PMF (SVD without bias)</a> <a class="btn" data="svd">SVD</a> <a class="btn" data="svdpp">SVD++</a>
+    <h3></h3>
   
   <!-- Begin D3 Javascript -->
   <script type="text/javascript">
-      var tip = d3.tip()
-      .attr('class', 'd3-tip')
-      .offset([-10, 0])
-      .html(function(d) {
-        return "<div class='tooltip'>" + 
-        "<strong>Title:</strong> <span style='color:white'>" + d.title + "</span>" + "</br>"+
-        "<strong>Avg. Rating:</strong> <span style='color:white'>" + d.rating.toFixed(2) + "</span>" + 
-        "</div>";
-      })
+  
     // Setup data
             var dataset = [];  // Initialize empty array
             var numDataPoints = 15;  // Number of dummy data points
@@ -93,20 +62,9 @@
             // }
 
             // Setup settings for graphic
-            var canvas_width = Math.min(window.innerWidth - 20, 1000);
-            var canvas_height = window.innerHeight - 300;
+            var canvas_width = 800;
+            var canvas_height = 600;
             var padding = 30;  // for chart edges
-            function handleMIn(d, i){
-                d3.select(this).attr('stroke', '#ff3030');
-                d3.select(this).attr('stroke-width', 3);
-                tip.show(d, i);
-            }
-            function handleMOut(d, i){
-                d3.select(this).attr('stroke'); 
-                d3.select(this).attr('stroke-width', 0);
-                tip.hide(d, i);
-            }
-
 
             d3.json('data.json', function(error, data) {
                 dataset = data
@@ -151,9 +109,7 @@
                     })
                     .attr("r", (d) => Math.log(d.count))  // radius
                     .attr("opacity", 0.6)  // radius
-                    .attr("fill", (d) => d.color)
-                    .on('mouseover', handleMIn)
-                    .on('mouseout', handleMOut);  // radius
+                    .attr("fill", (d) => d.color);  // radius
 
 
                 // Add to X axis
@@ -167,8 +123,6 @@
                     .attr("class", "y axis")
                     .attr("transform", "translate(" + padding +",0)")
                     .call(yAxis);
-
-                svg.call(tip);
             
             
                 // On click, update with new data
