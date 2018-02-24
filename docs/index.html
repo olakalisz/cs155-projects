@@ -1,0 +1,182 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="https://unpkg.com/purecss@1.0.0/build/base-min.css">
+    <!-- Load D3 from site -->
+    <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  </head>
+ 
+    <!-- CSS (Styling) -->
+    <style type="text/css">
+            /* Format X and Y Axis */
+/*            .axis path,
+            .axis line {
+                fill: none;
+                stroke: black;
+                shape-rendering: crispEdges;
+            }
+
+            .axis text {
+                font-family: sans-serif;
+                font-size: 11px;
+            }
+
+            .btn {
+                color: #FFFFFF;
+                background-color: #4CAF50;
+                padding: 8px 16px;
+                cursor: pointer;
+            }
+
+            .btn:hover {
+                box-shadow: 0 1px 2px 0 rgba(0,0,0,0.2), 0 3px 8px 0 rgba(0,0,0,0.19);
+            }*/
+/*
+            html, body {
+                font-family: Verdana,sans-serif;
+                font-size: 15px;
+                line-height: 1.5;
+            }*/
+    </style>
+    <!-- End CSS (Styling) -->
+ 
+  <body>
+    <div id="layout">
+        <div id="main">
+<div class="header">
+    <h1>Layouts</h1>
+
+    <h2>Quickstart your next web project with these example layouts.</h2>
+</div>
+    </div>
+</div>
+    <h1>MovieLens 100k Visualization </h1>
+    <p>This is a data visualization using transitions with a scatterplot</p>
+    <h4>Choose collaborative filtering method:</h4>
+    <a class="btn" data="svdu">PMF (SVD without bias)</a> <a class="btn" data="svd">SVD</a> <a class="btn" data="svdpp">SVD++</a>
+    <h3></h3>
+  
+  <!-- Begin D3 Javascript -->
+  <script type="text/javascript">
+  
+    // Setup data
+            var dataset = [];  // Initialize empty array
+            var numDataPoints = 15;  // Number of dummy data points
+            var maxRange = Math.random() * 1000;  // Max range of new values
+            var curSel = 'svdu';
+            // for(var i=0; i<numDataPoints; i++) {
+            //     var newNumber1 = Math.floor(Math.random() * maxRange);  // New random integer
+            //     var newNumber2 = Math.floor(Math.random() * maxRange);  // New random integer
+            //     dataset.push([newNumber1, newNumber2]);  // Add new number to array
+            // }
+
+            // Setup settings for graphic
+            var canvas_width = 800;
+            var canvas_height = 600;
+            var padding = 30;  // for chart edges
+
+            d3.json('data.json', function(error, data) {
+                dataset = data
+
+                // Create scale functions
+                var xScale = d3.scale.linear()  // xScale is width of graphic
+                                .domain([d3.min(dataset, (d) => d[curSel][0]), d3.max(dataset, (d) => d[curSel][0])])
+                                .range([padding, canvas_width - padding * 2]); // output range
+
+                var yScale = d3.scale.linear()  // yScale is height of graphic
+                                .domain([d3.min(dataset, (d) => d[curSel][1]), d3.max(dataset, (d) => d[curSel][1])])
+                                .range([canvas_height - padding, padding]);  // remember y starts on top going down so we flip
+
+                // Define X axis
+                var xAxis = d3.svg.axis()
+                                .scale(xScale)
+                                .orient("bottom")
+                                .ticks(5);
+
+                // Define Y axis
+                var yAxis = d3.svg.axis()
+                                .scale(yScale)
+                                .orient("left")
+                                .ticks(5);
+
+                // Create SVG element
+                var svg = d3.select("h3")  // This is where we put our vis
+                    .append("svg")
+                    .attr("width", canvas_width)
+                    .attr("height", canvas_height)
+
+                // Create Circles
+                svg.selectAll("circle")
+                    .data(dataset)
+                    .enter()
+                    .append("circle")  // Add circle svg
+                    .attr("cx", function(d) {
+                        return xScale(d[curSel][0]);  // Circle's X
+                    })
+                    .attr("cy", function(d) {  // Circle's Y
+                        return yScale(d[curSel][1]);
+                    })
+                    .attr("r", (d) => Math.log(d.count))  // radius
+                    .attr("opacity", 0.6)  // radius
+                    .attr("fill", (d) => d.color);  // radius
+
+
+                // Add to X axis
+                svg.append("g")
+                    .attr("class", "x axis")
+                    .attr("transform", "translate(0," + (canvas_height - padding) +")")
+                    .call(xAxis);
+
+                // Add to Y axis
+                svg.append("g")
+                    .attr("class", "y axis")
+                    .attr("transform", "translate(" + padding +",0)")
+                    .call(yAxis);
+            
+            
+                // On click, update with new data
+                d3.selectAll(".btn")
+                    .on("click", function() {
+                        curSel = d3.select(this).attr('data')
+                        // Update scale domains
+                        xScale.domain([d3.min(dataset, (d) => d[curSel][0]), d3.max(dataset, (d) => d[curSel][0])]);
+                        yScale.domain([d3.min(dataset, (d) => d[curSel][1]), d3.max(dataset, (d) => d[curSel][1])]);
+
+                        // Update circles
+                        svg.selectAll("circle")
+                            .data(dataset)  // Update with new data
+                            .transition()  // Transition from old to new
+                            .duration(1000)  // Length of animation
+                            .each("start", function() {  // Start animation
+                            })
+                            .delay(function(d, i) {
+                                return i / dataset.length * 500;  // Dynamic delay (i.e. each item delays a little longer)
+                            })
+                            //.ease("linear")  // Transition easing - default 'variable' (i.e. has acceleration), also: 'circle', 'elastic', 'bounce', 'linear'
+                            .attr("cx", function(d) {
+                                return xScale(d[curSel][0]);  // Circle's X
+                            })
+                            .attr("cy", function(d) {
+                                return yScale(d[curSel][1]);  // Circle's Y
+                            })
+                            .each("end", function() {  // End animation
+                            });
+
+                            // Update X Axis
+                            svg.select(".x.axis")
+                                .transition()
+                                .duration(1000)
+                                .call(xAxis);
+
+                            // Update Y Axis
+                            svg.select(".y.axis")
+                                .transition()
+                                .duration(100)
+                                .call(yAxis);
+                    });
+                });
+ 
+  </script>
+  </body>
+</html>
