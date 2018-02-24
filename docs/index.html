@@ -6,6 +6,7 @@
     <!-- Load D3 from site -->
     <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script src="https://labratrevenge.com/d3-tip/javascripts/d3.tip.v0.6.3.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Raleway" rel="stylesheet">
   </head>
  
     <!-- CSS (Styling) -->
@@ -63,7 +64,7 @@
             }
 
             div.tooltip {
-                color: white;
+                color: #fcfcfc;
                 padding: 4px 8px;
                 background-color: rgba(0, 0, 0, 0.7);
                 border-radius: 5px
@@ -89,20 +90,14 @@
       .offset([-10, 0])
       .html(function(d) {
         return "<div class='tooltip'>" + 
-        "<strong>Title:</strong> <span style='color:white'>" + d.title + "</span>" + "</br>"+
-        "<strong>Avg. Rating:</strong> <span style='color:white'>" + d.rating.toFixed(2) + "</span>" + 
+        "<strong><span style='color:white; font-size: 1.2em'>" + d.title + "</span></strong>" + "</br>" +
+        "<strong>Avg. Rating:</strong> <span>" + d.rating.toFixed(2) + "</span>" + "</br>" +
+        "<strong>Num. Rating:</strong> <span>" + d.count + "</span>" + 
         "</div>";
       })
     // Setup data
             var dataset = [];  // Initialize empty array
-            var numDataPoints = 15;  // Number of dummy data points
-            var maxRange = Math.random() * 1000;  // Max range of new values
             var curSel = 'svdu';
-            // for(var i=0; i<numDataPoints; i++) {
-            //     var newNumber1 = Math.floor(Math.random() * maxRange);  // New random integer
-            //     var newNumber2 = Math.floor(Math.random() * maxRange);  // New random integer
-            //     dataset.push([newNumber1, newNumber2]);  // Add new number to array
-            // }
 
             // Setup settings for graphic
             var canvas_width = Math.min(window.innerWidth - 20, 1000);
@@ -161,7 +156,7 @@
                     .attr("cy", function(d) {  // Circle's Y
                         return yScale(d[curSel][1]);
                     })
-                    .attr("r", (d) => Math.log(d.count))  // radius
+                    .attr("r", (d) => Math.log2(d.count))  // radius
                     .attr("opacity", 0.6)  // radius
                     .attr("fill", (d) => d.color)
                     .on('mouseover', handleMIn)
