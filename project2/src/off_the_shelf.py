@@ -12,7 +12,7 @@ def scipy_svd_train(M, N, K, Y):
     Y - a 2D array, first column is ith the user ID, second column is jth the movie ID, third column is the rating of user i on movie j
 
     Returns:
-    (U, V)
+    (U, Sigma, V)
     """
     train_data_matrix = np.zeros((M,N))
     for n in range(Y.shape[0]):
@@ -23,4 +23,4 @@ def scipy_svd_train(M, N, K, Y):
 
     U, s, V = svds(train_data_matrix, k = 20)
 
-    return (U, V)
+    return (U, s, V)

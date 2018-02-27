@@ -169,12 +169,12 @@ if __name__ == '__main__':
     # setting K=20 as specified in the assignment
     K = 20
     eta = 0.03
-    reg = 1
+    reg = 0.0
 
     # visualize SVD as implemented for CS155 HW5
     U, V, _ = svd_sgd.train_model(M, N, K, eta, reg, Y_train, max_epochs=300)
     produce_plots(V.transpose(), 'HW5', ratings_all, M, N, args.imagebasename, args.singlegenreplot)
 
     # "off-the-shelf" SVD from numpy
-    U, V = off_the_shelf.scipy_svd_train(M, N, K, Y_train)
+    U, _, V = off_the_shelf.scipy_svd_train(M, N, K, Y_train)
     produce_plots(V, 'SciPy', ratings_all, M, N, args.imagebasename, args.singlegenreplot)
