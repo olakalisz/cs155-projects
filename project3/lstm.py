@@ -26,22 +26,40 @@ def load_sonnets():
 
     return sonnets
 
-def train_lstm(maxlen=40, initial_weights=None, initial_epoch=0, epochs=600):
-    """Train a 2-layer LSTM model on the sonnets dataset.
 
-    Optionally, load from saved weights by passing a filename to initial_weights and an initial
-    epoch to initial_epoch.
+def _sample(preds, temperature=1.0):
+    # helper function to sample an index from a probability array
+    preds = np.asarray(preds).astype('float64')
+    preds = np.log(preds) / temperature
+    exp_preds = np.exp(preds)
+    preds = exp_preds / np.sum(exp_preds)
+    probas = np.random.multinomial(1, preds, 1)
+    return np.argmax(probas)
+
+
+def construct_lstm_model(maxlen=40, initial_weights=None):
+    """Construct a 2-layer LSTM model on the sonnets dataset.
+
+    Optionally, load from saved weights by passing a filename to initial_weights.
 
     """
-    def _sample(preds, temperature=1.0):
-        # helper function to sample an index from a probability array
-        preds = np.asarray(preds).astype('float64')
-        preds = np.log(preds) / temperature
-        exp_preds = np.exp(preds)
-        preds = exp_preds / np.sum(exp_preds)
-        probas = np.random.multinomial(1, preds, 1)
-        return np.argmax(probas)
+    sonnets = load_sonnets()
+    chars = sorted(set([c for s in sonnets for l in s for c in l]))
 
+    model = Sequential()
+    model.add(LSTM(256, input_shape=(maxlen, len(chars)), return_sequences=True))
+    model.add(LSTM(256))
+    model.add(Dense(len(chars)))
+    model.add(Activation('softmax'))
+    model.compile(loss='categorical_crossentropy', optimizer='adam')
+
+    if initial_weights:
+        model.load_weights(initial_weights)
+
+    return model
+
+
+def train_lstm(model, initial_epoch=0, epochs=600):
     def _on_epoch_end(epoch, logs):
         # Function invoked at end of each epoch. Prints generated text.
         print()
@@ -94,26 +112,16 @@ def train_lstm(maxlen=40, initial_weights=None, initial_epoch=0, epochs=600):
             x[i, t, char_indices[char]] = 1
         y[i, char_indices[next_chars[i]]] = 1
 
-    model = Sequential()
-    model.add(LSTM(256, input_shape=(maxlen, len(chars)), return_sequences=True))
-    model.add(LSTM(256))
-    model.add(Dense(len(chars)))
-    model.add(Activation('softmax'))
-    model.compile(loss='categorical_crossentropy', optimizer='adam')
-
-    if initial_weights:
-        model.load_weights(initial_weights)
-
     print_callback = LambdaCallback(on_epoch_end=_on_epoch_end)
     filepath="weights-improvement-{epoch:02d}-{loss:.4f}-2layer.hdf5"
     checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
+
     model.fit(x, y,
               batch_size=128,
-              epochs=epochs,
+              epochs=args.epochs,
               callbacks=[checkpoint],
-              initial_epoch=initial_epoch)
+              initial_epoch=args.initepoch)
 
-    return model
 
 def generate_sonnet(model, maxlen=40, sonnets=None, chars=None):
     """Generate a sonnet with the given model.
@@ -123,6 +131,8 @@ def generate_sonnet(model, maxlen=40, sonnets=None, chars=None):
     """
     sonnets = sonnets or load_sonnets()
     chars = chars or sorted(set([c for s in sonnets for l in s for c in l]))
+    char_indices = dict((c, i) for i, c in enumerate(chars))
+    indices_char = dict((i, c) for i, c in enumerate(chars))
     text = ''.join([c for s in sonnets for l in s for c in l])
     start_index = random.randint(0, len(text) - maxlen - 1)
     for diversity in [0.25, 0.75, 1.5]:
@@ -140,7 +150,7 @@ def generate_sonnet(model, maxlen=40, sonnets=None, chars=None):
                 x_pred[0, t, char_indices[char]] = 1.
 
             preds = model.predict(x_pred, verbose=0)[0]
-            next_index = sample(preds, diversity)
+            next_index = _sample(preds, diversity)
             next_char = indices_char[next_index]
 
             generated += next_char
@@ -150,11 +160,18 @@ def generate_sonnet(model, maxlen=40, sonnets=None, chars=None):
             sys.stdout.flush()
         print()
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', type=str)
-    parser.add_argument('--epoch', type=int)
+    parser.add_argument('--action', type=str, choices=['train', 'generate'], required=True)
+    parser.add_argument('--initepoch', type=int)
+    parser.add_argument('--epochs', type=int)
     args = parser.parse_args()
 
-    model = train_lstm(initial_weights=args.weights, initial_epoch=args.epoch)
-    generate_sonnet(model)
+    model = construct_lstm_model(initial_weights=args.weights)
+
+    if args.action == 'train':
+        train_lstm(model, args.initepoch, args.epochs)
+    elif args.action == 'generate':
+        generate_sonnet(model)
