@@ -66,7 +66,7 @@ def stress_repr(sonnets, word_syllables):
     for s in sonnets:
         encoded_s = []
         for ln in s:
-            words = ln.strip('\n,?').split(' ')
+            words = ln.strip('\n,?:').split(' ')
             line_trees = [[(0, words[0], 0)]]
             for w in words[1:]:
                 new_line_trees = []
