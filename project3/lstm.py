@@ -1,3 +1,4 @@
+from collections import defaultdict
 from keras.models import Sequential
 from keras.callbacks import LambdaCallback, ModelCheckpoint
 from keras.layers import LSTM, Dense, Activation
@@ -25,6 +26,67 @@ def load_sonnets():
             ln_end = ln
 
     return sonnets
+
+
+def load_syllables():
+    words = []
+    syllable_dict = {}
+    word_syllable_dict = {}
+    rev_syllable_dict = defaultdict(list)
+    rev_end_syllable_dict = defaultdict(list)
+
+    with open('data/Syllable_dictionary.txt') as f:
+        for i, line in enumerate(f):
+            tokens = line.strip().split(' ')
+            words.append(tokens[0])
+            syllable_dict[i] = []
+            for syl in tokens[1:]:
+                if syl[0] == 'E':
+                    rev_end_syllable_dict[int(syl[1:])].append(i)
+                    syllable_dict[i].append(int(syl[1:]))
+                else:
+                    rev_syllable_dict[int(syl)].append(i)
+                    syllable_dict[i].append(int(syl))
+            word_syllable_dict[tokens[0]] = syllable_dict[i]
+
+    return words, syllable_dict, word_syllable_dict, rev_syllable_dict, rev_end_syllable_dict
+
+
+def stress_repr(sonnets, word_syllables):
+    """Generate the stress representation for the given sonnets.
+
+    For each line of words, turn it into a list of tuples:
+        (first_syllable_stress, word)
+
+    Additionally, produce a stress mapping for each word:
+        TODO
+
+    """
+    encoded_sonnets = []
+    for s in sonnets:
+        encoded_s = []
+        for ln in s:
+            words = ln.strip('\n,?').split(' ')
+            line_trees = [[(0, words[0], 0)]]
+            for w in words[1:]:
+                new_line_trees = []
+                for t in line_trees:
+                    print(t)
+                    for syl_count in word_syllables[t[-1][1]]:
+                        print(syl_count)
+                        new_t = t + [((t[-1][0] + syl_count) % 2, w, t[-1][2] + syl_count)]
+                        print(new_t)
+                        new_line_trees.append(new_t)
+                        print(new_line_trees)
+                line_trees = new_line_trees
+
+            for syl_count in word_syllables[w]:
+                culled_line_trees = [[(stress, word) for stress, word, syl_count in tree] for tree in line_trees if tree[-1][2] == 10 - syl_count]
+                print('CULLED', culled_line_trees)
+            encoded_s.append(culled_line_trees[0])
+        encoded_sonnets.append(encoded_s)
+
+    return encoded_sonnets
 
 
 def _sample(preds, temperature=1.0):
