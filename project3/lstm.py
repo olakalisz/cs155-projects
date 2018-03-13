@@ -1,4 +1,3 @@
-from collections import defaultdict
 from keras.models import Sequential
 from keras.callbacks import LambdaCallback, ModelCheckpoint
 from keras.layers import LSTM, Dense, Activation
@@ -8,48 +7,7 @@ import numpy as np
 import random
 import sys
 
-def load_sonnets():
-    with open('data/shakespeare.txt') as f:
-      lines = [line.strip(' ').lower() for line in f]
-    sonnets = []
-    ln_start = 0
-    ln_end = 0
-    for ln, content in enumerate(lines):
-        if content[:-1].isdigit():
-            ln_start = ln + 1
-        elif not content[:-1]:
-            if ln - 1 == ln_end:
-                sonnets.append(lines[ln_start:ln_end + 1])
-        elif ln + 1 == len(lines):
-            sonnets.append(lines[ln_start:ln_end + 1])
-        else:
-            ln_end = ln
-
-    return sonnets
-
-
-def load_syllables():
-    words = []
-    syllable_dict = {}
-    word_syllable_dict = {}
-    rev_syllable_dict = defaultdict(list)
-    rev_end_syllable_dict = defaultdict(list)
-
-    with open('data/Syllable_dictionary.txt') as f:
-        for i, line in enumerate(f):
-            tokens = line.strip().split(' ')
-            words.append(tokens[0])
-            syllable_dict[i] = []
-            for syl in tokens[1:]:
-                if syl[0] == 'E':
-                    rev_end_syllable_dict[int(syl[1:])].append(i)
-                    syllable_dict[i].append(int(syl[1:]))
-                else:
-                    rev_syllable_dict[int(syl)].append(i)
-                    syllable_dict[i].append(int(syl))
-            word_syllable_dict[tokens[0]] = syllable_dict[i]
-
-    return words, syllable_dict, word_syllable_dict, rev_syllable_dict, rev_end_syllable_dict
+from dataset import load_sonnets, load_syllables
 
 
 def stress_repr(sonnets, word_syllables):
