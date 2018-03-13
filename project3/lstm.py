@@ -10,43 +10,6 @@ import sys
 from dataset import load_sonnets, load_syllables
 
 
-def stress_repr(sonnets, word_syllables):
-    """Generate the stress representation for the given sonnets.
-
-    For each line of words, turn it into a list of tuples:
-        (first_syllable_stress, word)
-
-    Additionally, produce a stress mapping for each word:
-        TODO
-
-    """
-    encoded_sonnets = []
-    for s in sonnets:
-        encoded_s = []
-        for ln in s:
-            words = ln.strip('\n,?:').split(' ')
-            line_trees = [[(0, words[0], 0)]]
-            for w in words[1:]:
-                new_line_trees = []
-                for t in line_trees:
-                    print(t)
-                    for syl_count in word_syllables[t[-1][1]]:
-                        print(syl_count)
-                        new_t = t + [((t[-1][0] + syl_count) % 2, w, t[-1][2] + syl_count)]
-                        print(new_t)
-                        new_line_trees.append(new_t)
-                        print(new_line_trees)
-                line_trees = new_line_trees
-
-            for syl_count in word_syllables[w]:
-                culled_line_trees = [[(stress, word) for stress, word, syl_count in tree] for tree in line_trees if tree[-1][2] == 10 - syl_count]
-                print('CULLED', culled_line_trees)
-            encoded_s.append(culled_line_trees[0])
-        encoded_sonnets.append(encoded_s)
-
-    return encoded_sonnets
-
-
 def _sample(preds, temperature=1.0):
     # helper function to sample an index from a probability array
     preds = np.asarray(preds).astype('float64')
