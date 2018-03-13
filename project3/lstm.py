@@ -1,3 +1,4 @@
+from collections import defaultdict
 from keras.models import Sequential
 from keras.callbacks import LambdaCallback, ModelCheckpoint
 from keras.layers import LSTM, Dense, Activation
@@ -27,6 +28,67 @@ def load_sonnets():
     return sonnets
 
 
+def load_syllables():
+    words = []
+    syllable_dict = {}
+    word_syllable_dict = {}
+    rev_syllable_dict = defaultdict(list)
+    rev_end_syllable_dict = defaultdict(list)
+
+    with open('data/Syllable_dictionary.txt') as f:
+        for i, line in enumerate(f):
+            tokens = line.strip().split(' ')
+            words.append(tokens[0])
+            syllable_dict[i] = []
+            for syl in tokens[1:]:
+                if syl[0] == 'E':
+                    rev_end_syllable_dict[int(syl[1:])].append(i)
+                    syllable_dict[i].append(int(syl[1:]))
+                else:
+                    rev_syllable_dict[int(syl)].append(i)
+                    syllable_dict[i].append(int(syl))
+            word_syllable_dict[tokens[0]] = syllable_dict[i]
+
+    return words, syllable_dict, word_syllable_dict, rev_syllable_dict, rev_end_syllable_dict
+
+
+def stress_repr(sonnets, word_syllables):
+    """Generate the stress representation for the given sonnets.
+
+    For each line of words, turn it into a list of tuples:
+        (first_syllable_stress, word)
+
+    Additionally, produce a stress mapping for each word:
+        TODO
+
+    """
+    encoded_sonnets = []
+    for s in sonnets:
+        encoded_s = []
+        for ln in s:
+            words = ln.strip('\n,?:').split(' ')
+            line_trees = [[(0, words[0], 0)]]
+            for w in words[1:]:
+                new_line_trees = []
+                for t in line_trees:
+                    print(t)
+                    for syl_count in word_syllables[t[-1][1]]:
+                        print(syl_count)
+                        new_t = t + [((t[-1][0] + syl_count) % 2, w, t[-1][2] + syl_count)]
+                        print(new_t)
+                        new_line_trees.append(new_t)
+                        print(new_line_trees)
+                line_trees = new_line_trees
+
+            for syl_count in word_syllables[w]:
+                culled_line_trees = [[(stress, word) for stress, word, syl_count in tree] for tree in line_trees if tree[-1][2] == 10 - syl_count]
+                print('CULLED', culled_line_trees)
+            encoded_s.append(culled_line_trees[0])
+        encoded_sonnets.append(encoded_s)
+
+    return encoded_sonnets
+
+
 def _sample(preds, temperature=1.0):
     # helper function to sample an index from a probability array
     preds = np.asarray(preds).astype('float64')
@@ -37,7 +99,7 @@ def _sample(preds, temperature=1.0):
     return np.argmax(probas)
 
 
-def construct_lstm_model(maxlen=40, initial_weights=None):
+def construct_lstm_model(maxlen=40, initial_weights=None, layers=1):
     """Construct a 2-layer LSTM model on the sonnets dataset.
 
     Optionally, load from saved weights by passing a filename to initial_weights.
@@ -47,8 +109,9 @@ def construct_lstm_model(maxlen=40, initial_weights=None):
     chars = sorted(set([c for s in sonnets for l in s for c in l]))
 
     model = Sequential()
-    model.add(LSTM(256, input_shape=(maxlen, len(chars)), return_sequences=True))
-    model.add(LSTM(256))
+    model.add(LSTM(256, input_shape=(maxlen, len(chars)), return_sequences=layers>1))
+    for i in range(1, layers):
+        model.add(LSTM(256, return_sequences=i<(layers-1)))
     model.add(Dense(len(chars)))
     model.add(Activation('softmax'))
     model.compile(loss='categorical_crossentropy', optimizer='adam')
@@ -59,7 +122,7 @@ def construct_lstm_model(maxlen=40, initial_weights=None):
     return model
 
 
-def train_lstm(model, initial_epoch=0, epochs=600):
+def train_lstm(model, initial_epoch=0, epochs=600, maxlen=40, file_suffix=None):
     def _on_epoch_end(epoch, logs):
         # Function invoked at end of each epoch. Prints generated text.
         print()
@@ -113,14 +176,16 @@ def train_lstm(model, initial_epoch=0, epochs=600):
         y[i, char_indices[next_chars[i]]] = 1
 
     print_callback = LambdaCallback(on_epoch_end=_on_epoch_end)
-    filepath="weights-improvement-{epoch:02d}-{loss:.4f}-2layer.hdf5"
+    file_suffix = file_suffix or ''
+    filepath= 'weights-improvement-{epoch:02d}-{loss:.4f}%s.hdf5' % file_suffix
     checkpoint = ModelCheckpoint(filepath, monitor='loss', verbose=1, save_best_only=True, mode='min')
 
+    print(x.shape)
     model.fit(x, y,
               batch_size=128,
-              epochs=args.epochs,
+              epochs=epochs,
               callbacks=[checkpoint],
-              initial_epoch=args.initepoch)
+              initial_epoch=initial_epoch)
 
 
 def generate_sonnet(model, maxlen=40, sonnets=None, chars=None):
@@ -165,13 +230,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--weights', type=str)
     parser.add_argument('--action', type=str, choices=['train', 'generate'], required=True)
-    parser.add_argument('--initepoch', type=int)
-    parser.add_argument('--epochs', type=int)
+    parser.add_argument('--initepoch', type=int, default=0)
+    parser.add_argument('--epochs', type=int, default=600)
+    parser.add_argument('--layers', type=int, default=1)
     args = parser.parse_args()
 
-    model = construct_lstm_model(initial_weights=args.weights)
+    model = construct_lstm_model(initial_weights=args.weights, layers=args.layers)
 
     if args.action == 'train':
-        train_lstm(model, args.initepoch, args.epochs)
+        train_lstm(model, args.initepoch, args.epochs, file_suffix=f'-{args.layers}layer')
     elif args.action == 'generate':
         generate_sonnet(model)
