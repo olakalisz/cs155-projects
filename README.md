@@ -1,7 +1,7 @@
 # cs155-projects
 Caltech CS 155 Winter 2018
 
-Code for projects in [Caltech's CS155: Machine Learning and Data Mining](http://www.yisongyue.com/courses/cs155/2018_winter/), developed by team [Aw Young Qingzhuo](https://github.com/veniversum), [Ola Kalisz](https://github.com/pistacja96), and [Riley Patterson](https://github.com/rylz).
+Code for projects in [Caltech's CS155: Machine Learning and Data Mining](http://www.yisongyue.com/courses/cs155/2018_winter/), developed by team [Aw Young Qingzhuo](https://github.com/veniversum), [Ola Kalisz](https://github.com/olakalisz), and [Riley Patterson](https://github.com/rylz).
 
 ### Miniproject 1: Amazon Review Sentiment Detection
 
